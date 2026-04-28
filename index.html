@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escritor Pro | Assistente Literário Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/mammoth@1.4.0/mammoth.browser.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <header class="glass-effect border-b border-white/20 px-8 py-4 flex items-center justify-between z-10 shadow-lg">
+        <div class="flex items-center gap-3 slide-in-left">
+            <div class="bg-gradient-to-br from-purple-500 to-pink-500 p-2 rounded-xl text-white float-animation">
+                <i data-lucide="pen-tool" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold gradient-text">Escritor <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Pro</span></h1>
+                <p class="tagline text-purple-600 text-xs">✨ A magia de escrever começa aqui</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div id="stats" class="hidden lg:flex items-center gap-6 text-sm font-semibold border-r border-purple-200 pr-6">
+                <div class="flex items-center gap-2">
+                    <span class="text-purple-600">✍️</span>
+                    <span><strong id="charCount" class="text-2xl text-purple-600">0</strong> <span class="text-gray-500">caracteres</span></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-pink-600">📖</span>
+                    <span><strong id="wordCount" class="text-2xl text-pink-600">0</strong> <span class="text-gray-500">palavras</span></span>
+                </div>
+            </div>
+            <button onclick="openBooksModal()" class="btn-gradient text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:shadow-lg transition">
+                <i data-lucide="folder-open" class="w-5 h-5"></i>
+                <span class="hidden md:inline">📚 Livros</span>
+            </button>
+            <button onclick="openAuthModal()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:shadow-lg transform hover:scale-105 transition">
+                <span>🔐</span>
+                <span class="hidden md:inline" id="authButtonText">Login</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-2xl w-full max-w-md border-2 border-white/30 glass-effect overflow-hidden">
+            <div class="flex bg-gradient-to-r from-purple-600 to-pink-600">
+                <button onclick="switchAuthTab('login')" class="flex-1 text-white font-bold py-4 text-lg border-b-4 border-white transition" id="loginTabBtn">🔐 Login</button>
+                <button onclick="switchAuthTab('register')" class="flex-1 text-white/70 font-bold py-4 text-lg border-b-4 border-transparent hover:text-white transition" id="registerTabBtn">✨ Cadastro</button>
+            </div>
+
+            <div id="loginTab" class="p-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Bem-vindo de volta!</h2>
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">📧 Email</label>
+                        <input type="email" id="loginEmail" placeholder="seu@email.com" class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">🔑 Senha</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                    </div>
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition">Entrar</button>
+            </div>
+
+            <div id="registerTab" class="p-8 hidden">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Comece sua jornada!</h2>
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">👤 Nome</label>
+                        <input type="text" id="registerName" placeholder="Seu nome completo" class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">📧 Email</label>
+                        <input type="email" id="registerEmail" placeholder="seu@email.com" class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">🔑 Senha</label>
+                        <input type="password" id="registerPassword" placeholder="Mínimo 6 caracteres" class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                    </div>
+                </div>
+                <button onclick="handleRegister()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition">Criar Conta</button>
+            </div>
+
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-2xl text-slate-600 hover:text-slate-800 transition">✕</button>
+        </div>
+    </div>
+
+    <!-- Books Modal -->
+    <div id="booksModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-2xl w-full max-w-5xl border-2 border-white/30 glass-effect overflow-hidden my-8">
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold">📚 Meus Livros</h2>
+                    <p class="text-purple-100 mt-1">Gerencie seus livros e capítulos</p>
+                </div>
+                <button onclick="closeBooksModal()" class="text-3xl transition transform hover:scale-110">✕</button>
+            </div>
+
+            <div class="flex gap-6 p-8 min-h-96 overflow-hidden">
+                <div class="flex-1 flex flex-col border-r border-purple-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-slate-800">Seus Livros</h3>
+                        <button onclick="showNewBookForm()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition">+ Novo</button>
+                    </div>
+                    <div id="booksList" class="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+                        <p class="text-slate-600 text-center py-8">Nenhum livro criado ainda</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col">
+                    <div id="noBookSelected" class="flex flex-col items-center justify-center h-full text-center">
+                        <div class="text-5xl mb-4">👈</div>
+                        <p class="text-slate-600 text-center text-lg">Selecione um livro para ver os capítulos</p>
+                    </div>
+                    <div id="selectedBookDetails" class="hidden h-full flex-col">
+                        <h3 id="selectedBookTitle" class="text-2xl font-bold text-slate-800 mb-1"></h3>
+                        <p id="selectedBookDesc" class="text-sm text-slate-600 italic mb-4"></p>
+                        <h4 class="font-bold text-slate-700 mb-2 border-b pb-2">Capítulos</h4>
+                        <div id="chaptersList" class="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Book Modal -->
+    <div id="newBookModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-2xl w-full max-w-md border-2 border-white/30 glass-effect overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-8">
+                <h2 class="text-2xl font-bold">📖 Novo Livro</h2>
+            </div>
+            <div class="p-8 space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">📚 Título</label>
+                    <input type="text" id="newBookTitle" placeholder="Digite o título..." class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">📝 Descrição</label>
+                    <textarea id="newBookDesc" placeholder="Descreva seu livro..." class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition resize-none" rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">🔢 Capítulos</label>
+                    <input type="number" id="newBookChapters" placeholder="1" value="1" min="1" max="100" class="w-full p-3 border-2 border-purple-200 rounded-lg outline-none focus:border-purple-500 focus:bg-white transition">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="createNewBook()" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition">✅ Criar</button>
+                    <button onclick="closeNewBookModal()" class="flex-1 bg-gray-400 text-white font-bold py-3 rounded-lg hover:shadow-lg transition">✕ Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Modal -->
+    <div id="storyModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-2xl max-w-4xl w-full max-h-screen flex flex-col border-2 border-white/30 glass-effect overflow-hidden my-8">
+            <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-8 flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold">📝 Sua História</h2>
+                    <p class="text-purple-100 mt-1">Escreva sua história épica aqui</p>
+                </div>
+                <button onclick="closeStoryModal()" class="text-3xl transition transform hover:scale-110">✕</button>
+            </div>
+
+            <div class="flex-1 flex flex-col overflow-hidden p-8 gap-4">
+                <textarea id="storyTextarea" class="flex-1 w-full p-4 rounded-xl border-2 border-purple-200 bg-white/80 resize-none outline-none custom-scrollbar editor-font" placeholder="Comece sua história épica aqui..."></textarea>
+                <div class="flex items-center justify-between gap-4 text-sm text-slate-600 mt-2">
+                    <div class="flex items-center gap-4">
+                        <span>Caracteres: <strong id="storyCharCount">0</strong></span>
+                        <span>Palavras: <strong id="storyWordCount">0</strong></span>
+                    </div>
+                    <div class="flex-1 flex items-center gap-2">
+                        <div class="w-full bg-purple-200 rounded-full h-2.5">
+                            <div id="storyProgressBar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <span class="font-semibold"><span id="storyProgress">0</span>%</span>
+                    </div>
+                    <button id="saveStoryBtn" onclick="saveStoryToEditor()" class="btn-gradient text-white px-4 py-2 rounded-lg font-semibold">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 flex overflow-hidden">
+        <nav id="main-nav" class="w-24 md:w-28 bg-white/10 backdrop-blur-md border-r border-white/20 flex flex-col items-center py-8 gap-6">
+            <button onclick="startWritingNew()" class="nav-item group relative" title="Sua história">
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white transition-all nav-item-active group-hover:scale-110 active-nav pop-in" id="nav-editor">
+                    <i data-lucide="file-text" class="w-7 h-7"></i>
+                </div>
+                <div class="absolute left-24 top-4 bg-slate-900 text-white px-3 py-1 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Sua história</div>
+            </button>
+            
+            <button onclick="switchTab('review')" class="nav-item group relative" title="Análise IA">
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-yellow-400 to-yellow-600 text-white hover:scale-110 transition-all">
+                    <i data-lucide="sparkles" class="w-7 h-7"></i>
+                </div>
+                <div class="absolute left-24 top-4 bg-slate-900 text-white px-3 py-1 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Análise IA</div>
+            </button>
+
+            <button onclick="switchTab('translate')" class="nav-item group relative" title="Tradução">
+                <div id="nav-translate" class="p-4 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 text-white hover:scale-110 transition-all">
+                    <i data-lucide="globe" class="w-7 h-7"></i>
+                </div>
+                <div class="absolute left-24 top-4 bg-slate-900 text-white px-3 py-1 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Tradução</div>
+            </button>
+
+            <button onclick="switchTab('synonyms')" class="nav-item group relative" title="Sinônimos">
+                <div id="nav-synonyms" class="p-4 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-600 text-white hover:scale-110 transition-all">
+                    <i data-lucide="book" class="w-7 h-7"></i>
+                </div>
+                <div class="absolute left-24 top-4 bg-slate-900 text-white px-3 py-1 rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">Sinônimos</div>
+            </button>
+
+            <div class="w-12 h-px bg-white/20 my-2"></div>
+            
+            <div class="flex-1 flex flex-col items-center justify-end gap-4 mt-auto">
+                <div class="text-4xl float-animation">✨</div>
+                <div class="text-center text-xs text-white/70 px-2">
+                    <p class="font-bold">Escreva como</p>
+                    <p>um profissional</p>
+                </div>
+            </div>
+        </nav>
+
+        <section class="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-white/90 to-purple-50/90 p-10">
+            <div class="h-full w-full flex items-center justify-center">
+                <div class="text-center max-w-2xl">
+                        <div class="text-6xl mb-4 float-animation">✨</div>
+                        <h2 class="text-4xl font-bold text-slate-800 mb-4">Bem-vindo ao Escritor Pro!</h2>
+                        <p class="text-xl text-slate-600 mb-8">O seu assistente literário inteligente para escrever histórias extraordinárias.</p>
+                        <div id="homePanel" class="flex gap-4 justify-center flex-wrap">
+                            <button onclick="startWritingNew()" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transform hover:scale-105 transition">
+                                📝 Comece a Escrever
+                            </button>
+                            <button onclick="openBooksModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:shadow-lg transform hover:scale-105 transition">
+                                📚 Meus Livros
+                            </button>
+                        </div>
+
+                        <!-- AI Analysis Tab (hidden by default) -->
+                        <div id="tab-review" class="hidden mt-8 max-w-4xl mx-auto w-full">
+                            <div class="glass-effect p-8 rounded-2xl border border-white/30 mb-6 bg-gradient-to-r from-yellow-200/30 to-yellow-100/30">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-slate-800">🔍 Análise IA</h3>
+                                        <p class="text-sm text-slate-600">Cole ou edite o trecho que deseja analisar e clique em "Iniciar Análise".</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="switchTab('home')" class="px-4 py-2 rounded-lg bg-white/20 text-slate-800 font-bold">⬅ Voltar</button>
+                                    </div>
+                                </div>
+
+                                <textarea id="analysisInput" class="w-full h-48 p-4 rounded-xl border-2 border-yellow-300 bg-white/80 resize-none outline-none" placeholder="Cole aqui seu texto ou use o editor principal..."></textarea>
+
+                                <div class="mt-4 flex gap-3 items-center">
+                                    <button onclick="analyzeText()" class="btn-gradient px-6 py-3 rounded-xl font-bold text-white">✨ Iniciar Análise IA</button>
+                                    <button onclick="insertSampleAnalysis()" class="px-4 py-3 rounded-xl bg-white/20 text-slate-800 font-semibold">Inserir Exemplo</button>
+                                    <button onclick="document.getElementById('analysisInput').value = ''" class="px-4 py-3 rounded-xl bg-white/20 text-slate-800 font-semibold">Limpar</button>
+                                </div>
+
+                                <div class="mt-4 flex items-center gap-3">
+                                    <label class="text-sm font-semibold text-slate-700">Importar arquivo:</label>
+                                    <input id="fileInput" type="file" accept=".txt,.md,.pdf,.docx" onchange="handleFileUpload(event)" class="px-2 py-1 rounded-md bg-white/80">
+                                    <button onclick="document.getElementById('fileInput').value = ''" class="px-3 py-2 rounded-xl bg-white/10 text-slate-800">Limpar</button>
+                                </div>
+                                <div class="mt-4 flex gap-3">
+                                    <button onclick="analyzeWithOpenAI()" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold">🔬 Análise (OpenAI)</button>
+                                    <button onclick="translateWithOpenAI()" class="px-6 py-3 rounded-xl bg-green-600 text-white font-bold">🌐 Traduzir Rápido (OpenAI)</button>
+                                </div>
+                            </div>
+
+                            <div id="analysisResults" class="space-y-4"></div>
+                        </div>
+
+                        <!-- Translation Tab (hidden by default) -->
+                        <div id="tab-translate" class="hidden mt-8 max-w-4xl mx-auto w-full">
+                            <div class="glass-effect p-8 rounded-2xl border border-white/30 mb-6 bg-gradient-to-r from-green-200/30 to-green-100/30">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-slate-800">🌐 Tradução</h3>
+                                        <p class="text-sm text-slate-600">Traduza seu texto para outros idiomas.</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="switchTab('home')" class="px-4 py-2 rounded-lg bg-white/20 text-slate-800 font-bold">⬅ Voltar</button>
+                                    </div>
+                                </div>
+                                <textarea id="translateInput" class="w-full h-48 p-4 rounded-xl border-2 border-green-300 bg-white/80 resize-none outline-none" placeholder="Cole o texto para traduzir..."></textarea>
+                                <div class="mt-4 flex gap-3 items-center flex-wrap">
+                                    <select id="translateTarget" class="p-3 rounded-xl border-2 border-green-300 bg-white/80 outline-none">
+                                        <option value="inglês">Inglês</option>
+                                        <option value="espanhol">Espanhol</option>
+                                        <option value="francês">Francês</option>
+                                        <option value="alemão">Alemão</option>
+                                        <option value="italiano">Italiano</option>
+                                    </select>
+                                    <button onclick="translateText()" class="px-6 py-3 rounded-xl bg-gray-500 text-white font-bold">🌍 Traduzir (Simulado)</button>
+                                    <button onclick="translateWithOpenAI(true)" class="px-6 py-3 rounded-xl bg-green-600 text-white font-bold">🌐 Traduzir (OpenAI)</button>
+                                </div>
+                                <div class="mt-4">
+                                    <h4 class="font-bold text-slate-800 mb-2">Resultado:</h4>
+                                    <div id="translationOutput" class="w-full min-h-24 p-4 rounded-xl bg-white/80 border-2 border-green-300"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Synonyms Tab (hidden by default) -->
+                        <div id="tab-synonyms" class="hidden mt-8 max-w-4xl mx-auto w-full">
+                            <div class="glass-effect p-8 rounded-2xl border border-white/30 mb-6 bg-gradient-to-r from-pink-200/30 to-pink-100/30">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-slate-800">📚 Dicionário de Sinônimos</h3>
+                                        <p class="text-sm text-slate-600">Encontre a palavra perfeita.</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="switchTab('home')" class="px-4 py-2 rounded-lg bg-white/20 text-slate-800 font-bold">⬅ Voltar</button>
+                                    </div>
+                                </div>
+                                <div class="text-center py-16 text-slate-500">
+                                    <p>Funcionalidade de sinônimos em breve!</p>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Message Box -->
+    <div id="messageBox" class="fixed bottom-8 right-8 transform translate-y-32 opacity-0 transition-all duration-300 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 z-50 border border-white/30">
+        <span class="text-2xl" id="messageEmoji">✨</span>
+        <span id="messageContent" class="font-semibold"></span>
+    </div>
+
+    <script>
+        // ====== STATE ======
+        let currentUser = null;
+        let books = [];
+        let currentBook = null;
+        let currentChapterId = null;
+
+        // ====== AUTH FUNCTIONS ======
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            const loginBtn = document.getElementById('loginTabBtn');
+            const registerBtn = document.getElementById('registerTabBtn');
+
+            if (tab === 'login') {
+                loginTab.classList.remove('hidden');
+                registerTab.classList.add('hidden');
+                loginBtn.classList.add('border-b-4', 'border-white');
+                registerBtn.classList.remove('border-b-4', 'border-white');
+                registerBtn.classList.add('border-transparent');
+            } else {
+                registerTab.classList.remove('hidden');
+                loginTab.classList.add('hidden');
+                registerBtn.classList.add('border-b-4', 'border-white');
+                loginBtn.classList.remove('border-b-4', 'border-white');
+                loginBtn.classList.add('border-transparent');
+            }
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showMessage("❌ Preencha todos os campos!", "⚠️");
+                return;
+            }
+
+            currentUser = { email, name: email.split('@')[0], id: Date.now() };
+            saveUserToStorage();
+            document.getElementById('authButtonText').textContent = currentUser.name;
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            closeAuthModal();
+            showMessage(`✅ Bem-vindo de volta, ${currentUser.name}!`, "👋");
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            if (!name || !email || !password) {
+                showMessage("❌ Preencha todos os campos!", "⚠️");
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage("❌ Senha deve ter mínimo 6 caracteres!", "⚠️");
+                return;
+            }
+
+            currentUser = { email, name, id: Date.now() };
+            saveUserToStorage();
+            document.getElementById('authButtonText').textContent = name;
+            document.getElementById('registerName').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+            closeAuthModal();
+            showMessage(`✅ Bem-vindo, ${name}!`, "🎉");
+        }
+
+        // ====== BOOKS FUNCTIONS ======
+        function openBooksModal() {
+            document.getElementById('booksModal').classList.remove('hidden');
+            renderBooksList();
+        }
+
+        function closeBooksModal() {
+            document.getElementById('booksModal').classList.add('hidden');
+        }
+
+        function showNewBookForm() {
+            document.getElementById('newBookModal').classList.remove('hidden');
+        }
+
+        function closeNewBookModal() {
+            document.getElementById('newBookModal').classList.add('hidden');
+            document.getElementById('newBookTitle').value = '';
+            document.getElementById('newBookDesc').value = '';
+            document.getElementById('newBookChapters').value = '1';
+        }
+
+        function createNewBook() {
+            const title = document.getElementById('newBookTitle').value;
+            const desc = document.getElementById('newBookDesc').value;
+            const chapters = parseInt(document.getElementById('newBookChapters').value);
+
+            if (!title) {
+                showMessage("❌ Digite o título do livro!", "⚠️");
+                return;
+            }
+
+            const newBook = {
+                id: Date.now(),
+                title,
+                description: desc,
+                chapters: Array(chapters).fill(null).map((_, i) => ({
+                    id: i + 1,
+                    title: `Capítulo ${i + 1}`,
+                    content: ''
+                })),
+                createdAt: new Date().toLocaleDateString('pt-BR')
+            };
+
+            books.push(newBook);
+            // persist and select
+            saveBooksToStorage();
+            closeNewBookModal();
+            showMessage(`✅ Livro "${title}" criado com ${chapters} capítulo(s)!`, "📚");
+            renderBooksList();
+            selectBook(newBook.id);
+        }
+
+        function renderBooksList() {
+            const list = document.getElementById('booksList');
+            
+            if (books.length === 0) {
+                list.innerHTML = '<p class="text-slate-600 text-center py-8">Nenhum livro criado ainda</p>';
+                return;
+            }
+
+            list.innerHTML = books.map(book => `
+                <div onclick="selectBook(${book.id})" class="p-4 bg-white/60 rounded-xl border-l-4 border-purple-600 cursor-pointer hover:bg-white/80 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-800">${book.title}</h4>
+                    <p class="text-xs text-slate-600">${book.chapters.length} capítulos • ${book.createdAt}</p>
+                </div>
+            `).join('');
+        }
+
+        function selectBook(bookId) {
+            currentBook = books.find(b => b.id === bookId);
+            if (currentBook) {
+                document.getElementById('noBookSelected').classList.add('hidden');
+                const detailsView = document.getElementById('selectedBookDetails');
+                detailsView.classList.remove('hidden');
+                detailsView.classList.add('flex');
+
+                document.getElementById('selectedBookTitle').textContent = currentBook.title;
+                document.getElementById('selectedBookDesc').textContent = currentBook.description;
+                
+                renderChapters(currentBook);
+                
+                // Highlight selected book
+                const bookElements = document.querySelectorAll('#booksList > div');
+                bookElements.forEach(el => {
+                    if (el.getAttribute('onclick') === `selectBook(${bookId})`) {
+                        el.classList.add('bg-purple-100', 'border-purple-800');
+                        el.classList.remove('border-purple-600');
+                    } else {
+                        el.classList.remove('bg-purple-100', 'border-purple-800');
+                        el.classList.add('border-purple-600');
+                    }
+                });
+            }
+        }
+
+        function renderChapters(book) {
+            const list = document.getElementById('chaptersList');
+            if (!book || !book.chapters) {
+                list.innerHTML = '<p class="text-slate-500">Este livro não tem capítulos.</p>';
+                return;
+            }
+            list.innerHTML = book.chapters.map(chapter => `
+                <div onclick="editChapter(${book.id}, ${chapter.id})" class="p-3 bg-white rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-slate-400 transition flex justify-between items-center">
+                    <span class="font-medium text-slate-700">${chapter.title}</span>
+                    <span class="text-xs text-slate-500">${(chapter.content || '').length.toLocaleString('pt-BR')} caracteres</span>
+                </div>
+            `).join('');
+        }
+
+        // ====== PERSISTENCE ======
+        function saveBooksToStorage() {
+            try {
+                localStorage.setItem('escritor_books', JSON.stringify(books));
+            } catch (e) {
+                console.error('Erro salvando livros:', e);
+            }
+        }
+
+        function loadBooksFromStorage() {
+            try {
+                const raw = localStorage.getItem('escritor_books');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) books = parsed;
+                }
+            } catch (e) {
+                console.error('Erro carregando livros:', e);
+            }
+        }
+
+        // ====== USER PERSISTENCE ======
+        function saveUserToStorage() {
+            try {
+                if (currentUser) localStorage.setItem('escritor_user', JSON.stringify(currentUser));
+            } catch (e) {
+                console.error('Erro salvando usuário:', e);
+            }
+        }
+
+        function loadUserFromStorage() {
+            try {
+                const raw = localStorage.getItem('escritor_user');
+                if (raw) {
+                    currentUser = JSON.parse(raw);
+                    if (currentUser && document.getElementById('authButtonText')) {
+                        document.getElementById('authButtonText').textContent = currentUser.name || 'User';
+                    }
+                }
+            } catch (e) {
+                console.error('Erro carregando usuário:', e);
+            }
+        }
+
+        // ====== FILE UPLOAD & PARSING ======
+        async function handleFileUpload(evt) {
+            const f = evt.target.files && evt.target.files[0];
+            if (!f) return;
+            const name = f.name.toLowerCase();
+            showMessage(`📥 Importando ${f.name}...`, '⏳');
+            try {
+                if (name.endsWith('.txt') || name.endsWith('.md')) {
+                    const txt = await f.text();
+                    document.getElementById('analysisInput').value = txt;
+                    showMessage('✅ Arquivo de texto importado.', '📄');
+                } else if (name.endsWith('.pdf')) {
+                    const txt = await extractPDFText(f);
+                    document.getElementById('analysisInput').value = txt;
+                    showMessage('✅ PDF convertido para texto.', '📚');
+                } else if (name.endsWith('.docx')) {
+                    const txt = await extractDocxText(f);
+                    document.getElementById('analysisInput').value = txt;
+                    showMessage('✅ DOCX convertido para texto.', '📄');
+                } else {
+                    showMessage('Formato não suportado.', '⚠️');
+                }
+            } catch (e) {
+                console.error('Erro importando arquivo:', e);
+                showMessage('❌ Erro ao importar arquivo.', '⚠️');
+            }
+        }
+
+        async function extractPDFText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let out = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const strings = content.items.map(it => it.str);
+                out += strings.join(' ') + '\n\n';
+            }
+            return out;
+        }
+
+        async function extractDocxText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            try {
+                const result = await mammoth.convertToHtml({ arrayBuffer });
+                // strip html tags
+                return result.value.replace(/<[^>]+>/g, '\n').replace(/\n{2,}/g, '\n\n').trim();
+            } catch (e) {
+                // fallback: try raw text
+                const txt = new TextDecoder().decode(arrayBuffer);
+                return txt.slice(0, 100000);
+            }
+        }
+
+        // ====== STORY MODAL FUNCTIONS ======
+        function startWritingNew() {
+            currentBook = null;
+            currentChapterId = null;
+            const storyText = localStorage.getItem('escritor_scratchpad') || '';
+            document.getElementById('storyTextarea').value = storyText;
+            document.getElementById('saveStoryBtn').textContent = 'Salvar Rascunho';
+            updateStoryStats();
+            openStoryModal();
+            showMessage("📖 Modo rascunho ativado!", "✨");
+        }
+
+        function editChapter(bookId, chapterId) {
+            const book = books.find(b => b.id === bookId);
+            if (!book) return;
+
+            const chapter = book.chapters.find(c => c.id === chapterId);
+            if (!chapter) return;
+
+            currentBook = book;
+            currentChapterId = chapter.id;
+
+            document.getElementById('storyTextarea').value = chapter.content || '';
+            document.getElementById('saveStoryBtn').textContent = 'Salvar Capítulo';
+            updateStoryStats();
+
+            closeBooksModal();
+            openStoryModal();
+            showMessage(`📝 Editando "${chapter.title}"`, '✍️');
+        }
+
+        function openStoryModal() {
+            document.getElementById('storyModal').classList.remove('hidden');
+            document.getElementById('storyTextarea').focus();
+        }
+
+        function closeStoryModal() {
+            document.getElementById('storyModal').classList.add('hidden');
+        }
+
+        function updateStoryStats() {
+            const textarea = document.getElementById('storyTextarea');
+            const text = textarea.value;
+            const chars = text.length;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const progress = Math.round((chars / 50000) * 100);
+            
+            document.getElementById('storyCharCount').textContent = chars.toLocaleString('pt-BR');
+            document.getElementById('storyWordCount').textContent = words.toLocaleString('pt-BR');
+            document.getElementById('storyProgress').textContent = progress;
+            document.getElementById('storyProgressBar').style.width = `${progress}%`;
+
+            // Update header stats as well
+            document.getElementById('charCount').textContent = chars.toLocaleString('pt-BR');
+            document.getElementById('wordCount').textContent = words.toLocaleString('pt-BR');
+        }
+
+        function saveStoryToEditor() {
+            const storyText = document.getElementById('storyTextarea').value;
+            
+            if (currentBook && currentChapterId) {
+                // Editing a chapter
+                const chapter = currentBook.chapters.find(c => c.id === currentChapterId);
+                if (chapter) {
+                    chapter.content = storyText;
+                    saveBooksToStorage();
+                    showMessage(`✅ "${chapter.title}" salvo!`, "💾");
+                    closeStoryModal();
+                    openBooksModal();
+                    selectBook(currentBook.id);
+                }
+            } else {
+                // Saving a scratchpad
+                if (storyText.trim().length === 0) {
+                    showMessage("❌ O rascunho não pode estar vazio!", "⚠️");
+                    return;
+                }
+                localStorage.setItem('escritor_scratchpad', storyText);
+                showMessage(`✅ Rascunho salvo!`, "📝");
+                closeStoryModal();
+            }
+        }
+
+        // ====== MESSAGE BOX ======
+        function showMessage(msg, emoji = '✨') {
+            const box = document.getElementById('messageBox');
+            document.getElementById('messageContent').textContent = msg;
+            document.getElementById('messageEmoji').textContent = emoji;
+            box.classList.remove('translate-y-32', 'opacity-0');
+
+            setTimeout(() => {
+                box.classList.add('translate-y-32', 'opacity-0');
+            }, 4500);
+        }
+
+        // ====== INITIALIZATION ======
+        document.addEventListener('DOMContentLoaded', () => {
+            showMessage('Bem-vindo ao Escritor Pro! 🎉 Sua jornada literária começa agora.', '🎯');
+            lucide.createIcons();
+
+            const storyTextarea = document.getElementById('storyTextarea');
+            if (storyTextarea) {
+                storyTextarea.addEventListener('input', updateStoryStats);
+            }
+
+            // load persisted data
+            loadBooksFromStorage();
+            renderBooksList();
+            loadUserFromStorage();
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const authModal = document.getElementById('authModal');
+                    const booksModal = document.getElementById('booksModal');
+                    const storyModal = document.getElementById('storyModal');
+                    const newBookModal = document.getElementById('newBookModal');
+
+                    if (!authModal.classList.contains('hidden')) closeAuthModal();
+                    if (!booksModal.classList.contains('hidden')) closeBooksModal();
+                    if (!storyModal.classList.contains('hidden')) closeStoryModal();
+                    if (!newBookModal.classList.contains('hidden')) closeNewBookModal();
+                }
+            });
+        });
+
+        // ====== NAVIGATION & ANALYSIS FUNCTIONS ======
+        function switchTab(tabId) {
+            const home = document.getElementById('homePanel');
+            const review = document.getElementById('tab-review');
+            const translate = document.getElementById('tab-translate');
+            const synonyms = document.getElementById('tab-synonyms');
+
+            // Update nav button styles
+            const navButtons = document.querySelectorAll('#main-nav button > div');
+            navButtons.forEach(btn => btn.classList.remove('nav-item-active', 'active-nav', 'pop-in'));
+
+            const activeNav = {
+                'review': document.querySelector('[title="Análise IA"] > div'),
+                'translate': document.getElementById('nav-translate'),
+                'synonyms': document.getElementById('nav-synonyms'),
+            }[tabId] || document.getElementById('nav-editor');
+            activeNav.classList.add('nav-item-active', 'active-nav', 'pop-in');
+
+            // hide all special panels first
+            if (home) home.classList.add('hidden');
+            if (review) review.classList.add('hidden');
+            if (translate) translate.classList.add('hidden');
+            if (synonyms) synonyms.classList.add('hidden');
+
+            if (tabId === 'review') {
+                if (home) home.classList.add('hidden');
+                if (review) {
+                    // Prefill analysis input with story textarea or empty
+                    const storyText = document.getElementById('storyTextarea')?.value || '';
+                    const analysisInput = document.getElementById('analysisInput');
+                    if (analysisInput && storyText.trim().length > 0) analysisInput.value = storyText;
+                    review.classList.remove('hidden');
+                }
+            } else if (tabId === 'translate') {
+                if (translate) {
+                    // Prefill translate input with story textarea or empty
+                    const storyText = document.getElementById('storyTextarea')?.value || '';
+                    const translateInput = document.getElementById('translateInput');
+                    if (translateInput && storyText.trim().length > 0) translateInput.value = storyText;
+                    translate.classList.remove('hidden');
+                }
+            } else if (tabId === 'synonyms') {
+                if (synonyms) synonyms.classList.remove('hidden');
+            } else {
+                // default back to home
+                if (home) home.classList.remove('hidden');
+            }
+        }
+
+        async function analyzeText() {
+            const container = document.getElementById('analysisResults');
+            const input = document.getElementById('analysisInput');
+            if (!input) return;
+            const text = input.value;
+
+            if (!text || text.trim().length < 20) {
+                showMessage('Escreva ou cole ao menos 20 caracteres para análise.', '⚠️');
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="loading-shimmer h-20 rounded-2xl mb-4"></div>
+                <div class="loading-shimmer h-20 rounded-2xl mb-4"></div>
+            `;
+
+            setTimeout(() => {
+                const analysis = generateAnalysis(text);
+                renderAnalysis(analysis);
+                showMessage('🔎 Análise IA concluída!', '✨');
+            }, 1200);
+        }
+
+        // ====== SAMPLE ANALYSIS INSERT ======
+        function insertSampleAnalysis() {
+            const container = document.getElementById('analysisResults');
+            const sample = `
+                <div class="glass-effect p-6 rounded-2xl border border-white/30 mb-4">
+                    <h3 class="font-bold text-slate-800 text-lg">🔍 ANÁLISE LITERÁRIA 🔍</h3>
+                    <pre class="whitespace-pre-wrap text-sm text-slate-700 mt-3">GRAMÁTICA/ORTOGRAFIA: 
+- "veiculo" → "veículo" (acento)
+- "destruido" → "destruído" (acento)
+- "O carro andava muito rápido" → informal, melhor "O carro trafegava em alta velocidade" (opcional)
+
+VÍCIOS: 
+- "tipo assim, meio que" → muletas típicas da oralidade. Remover.
+
+COERÊNCIA: 
+- A última frase contradiz a ideia de segurança: "não se machucou, mas poderia ter se machucado menos" → melhor reformular.
+
+SINTAXE: 
+- Frases curtas e repetitivas. Pode combinar para maior fluidez.
+
+---
+TEXTO REVISADO:
+O carro trafegava em alta velocidade, e o motorista não prestava atenção ao que fazia. Ele perdeu o controle do veículo e colidiu com um poste. Apesar do acidente, não se machucou, mas o carro ficou completamente destruído. Curiosamente, se tivesse usado o cinto de segurança, talvez tivesse se machucado menos — uma contradição aparente que evidencia a imprevisibilidade dos acidentes.
+                    </pre>
+                </div>
+            `;
+
+            container.innerHTML = sample;
+        }
+
+        // ====== TRANSLATION ======
+        function translateText() {
+            const input = document.getElementById('translateInput');
+            const target = document.getElementById('translateTarget').value;
+            const output = document.getElementById('translationOutput');
+
+            if (!input || !output || !input.value.trim()) {
+                showMessage('Nada para traduzir.', '🌐');
+                return;
+            }
+
+            output.innerHTML = '<div class="loading-shimmer h-24 rounded-xl"></div>';
+            setTimeout(() => {
+                if (!output) return;
+                output.textContent = simulateTranslation(input.value, target);
+                showMessage(`Traduzido para ${target} com sucesso!`, '🌍');
+            }, 900);
+        }
+
+        function simulateTranslation(text, lang) {
+            const translations = {
+                'inglês': `[Translated to English] ${text.substring(0, 200)}...`,
+                'espanhol': `[Traducido al español] ${text.substring(0, 200)}...`,
+                'italiano': `[Tradotto in italiano] ${text.substring(0, 200)}...`,
+                'francês': `[Traduit en français] ${text.substring(0, 200)}...`,
+                'alemão': `[Übersetzt ins Deutsche] ${text.substring(0, 200)}...`,
+                'português brasileiro': `[Traduzido para Português Brasileiro] ${text.substring(0, 200)}...`
+            };
+            return translations[lang] || text;
+        }
+
+        function generateAnalysis(text) {
+            const issues = [];
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+
+            if (text.includes('  ')) {
+                issues.push({ type: 'Formatação', msg: 'Espaços duplos detectados', severity: 'low', fix: 'Remova espaços extras' });
+            }
+
+            // Repetition detection (simple)
+            const lower = text.toLowerCase();
+            const tokens = lower.match(/\b\w+\b/g) || [];
+            const freq = {};
+            tokens.forEach(t => freq[t] = (freq[t]||0) + 1);
+            const repeated = Object.keys(freq).filter(k => freq[k] > Math.max(3, Math.floor(tokens.length/50))).slice(0,3);
+            if (repeated.length) {
+                issues.push({ type: 'Estilo', msg: `Palavras repetidas: ${repeated.join(', ')}`, severity: 'medium', fix: 'Use sinônimos ou reescreva frases' });
+            }
+
+            if (text.split('\n').some(line => line.length > 220)) {
+                issues.push({ type: 'Estrutura', msg: 'Parágrafos muito longos detectados', severity: 'low', fix: 'Divida em parágrafos menores' });
+            }
+
+            if (text.match(/[a-z]\.[A-Z]/)) {
+                issues.push({ type: 'Pontuação', msg: 'Falta espaço após ponto detectado', severity: 'medium', fix: 'Adicione espaço após o ponto' });
+            }
+
+            if (issues.length === 0) {
+                issues.push({ type: 'Gramática', msg: 'Nenhum problema crítico detectado — bom trabalho!', severity: 'low', fix: 'Mantenha este nível' });
+            }
+
+            const score = Math.max(60, Math.min(98, 95 - repeated.length * 3 - (issues.length>2?5:0) + Math.round(Math.random()*4)));
+
+            return {
+                issues,
+                summary: `Texto com ${words.length} palavras e ${text.length} caracteres.`,
+                recommendation: 'Considere reduzir repetições e dividir parágrafos longos para melhorar fluxo.',
+                score
+            };
+        }
+
+        function renderAnalysis(data) {
+            const container = document.getElementById('analysisResults');
+            container.innerHTML = '';
+
+            container.innerHTML += `
+                <div class="glass-effect p-6 rounded-2xl border border-white/30 mb-4 bg-gradient-to-r from-yellow-50/60 to-yellow-100/60">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-800">Resumo</h4>
+                            <p class="text-sm text-slate-600">${data.summary}</p>
+                        </div>
+                        <div class="text-4xl font-bold gradient-text">${data.score}%</div>
+                    </div>
+                    <p class="text-xs italic text-slate-600 mt-3">${data.recommendation}</p>
+                </div>
+            `;
+
+            data.issues.forEach((issue, idx) => {
+                const card = document.createElement('div');
+                card.className = 'glass-effect p-4 rounded-xl border border-white/30 mb-3';
+                card.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-2xl">${issue.severity==='high'?'🔴':issue.severity==='medium'?'🟡':'🔵'}</div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs font-bold uppercase text-slate-700">${issue.type}</span>
+                                <button onclick="copyToClipboard('${issue.fix.replace(/'/g,"\\'")}')" class="text-xs font-bold text-blue-600 hover:text-blue-800 underline">💾 Copiar</button>
+                            </div>
+                            <p class="text-sm font-medium text-slate-800 mb-1">${issue.msg}</p>
+                            <p class="text-xs italic text-slate-600">${issue.fix}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('Copiado para a área de transferência!', '📋');
+            });
+        }
+
+        // ====== OPENAI INTEGRATION (frontend) ======
+        async function analyzeWithOpenAI() { 
+            const input = document.getElementById('analysisInput');
+            if (!input) return;
+            const text = input.value;
+
+            if (!text || text.trim().length < 20) {
+                showMessage('Escreva ao menos 20 caracteres para análise OpenAI.', '⚠️');
+                return;
+            }
+            const container = document.getElementById('analysisResults');
+            container.innerHTML = '<div class="loading-shimmer h-24 rounded-xl"></div>';
+
+            try {
+                const res = await fetch('/api/openai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'analysis', text })
+                });
+                const data = await res.json();
+                const content = data.choices?.[0]?.message?.content || '';
+                // try parse JSON from model
+                let parsed = null;
+                try { parsed = JSON.parse(content); } catch (e) { parsed = null; }
+                if (parsed && parsed.summary) {
+                    renderAnalysis({ summary: parsed.summary, issues: parsed.issues || [], recommendation: parsed.recommendation || '', score: parsed.score || 80 });
+                } else {
+                    // fallback: show raw text
+                    container.innerHTML = `<div class="glass-effect p-6 rounded-2xl">${escapeHtml(content)}</div>`;
+                }
+                showMessage('✅ Análise OpenAI concluída', '✨');
+            } catch (e) {
+                console.error(e);
+                showMessage('❌ Erro na análise OpenAI', '⚠️');
+            }
+        }
+
+        async function translateWithOpenAI(useTranslateInput = false) {
+            const text = useTranslateInput 
+                ? document.getElementById('translateInput')?.value || ''
+                : document.getElementById('analysisInput')?.value || '';
+            const target = document.getElementById('translateTarget')?.value || 'inglês';
+            if (!text) { showMessage('Nada para traduzir', '⚠️'); return; }
+
+            const out = document.getElementById('translationOutput');
+            if (!out) return;
+            out.innerHTML = '<div class="loading-shimmer h-24 rounded-xl"></div>'; // Show loading in the translate tab output
+            try {
+                const res = await fetch('/api/openai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'translate', text, target })
+                });
+                const data = await res.json();
+                const content = data.choices?.[0]?.message?.content || '';
+                out.textContent = content;
+                showMessage('✅ Tradução OpenAI concluída', '🌍');
+            } catch (e) {
+                console.error(e);
+                showMessage('❌ Erro na tradução OpenAI', '⚠️');
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

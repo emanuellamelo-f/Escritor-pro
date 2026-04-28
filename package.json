@@ -1,0 +1,16 @@
+{
+  "name": "escritor-pro",
+  "version": "1.0.0",
+  "description": "Assistente Literário Inteligente",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["literário", "escritor", "ai"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
